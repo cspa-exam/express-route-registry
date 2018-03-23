@@ -1,8 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const RouteBuilder = require('../../lib/Routing/RouteBuilder');
-const Route = require('../../lib/Routing/Route');
+const { RouteBuilder, Route } = require('../../index.js');
 
 describe('Route', () => {
   const dummy_action = (req, res, next) => res.send('hello');

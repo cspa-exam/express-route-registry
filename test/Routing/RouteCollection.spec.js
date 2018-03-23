@@ -1,8 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const RouteCollection = require('../../lib/Routing/RouteCollection');
-const Route = require('../../lib/Routing/Route');
+const { RouteCollection, Route } = require('../../index.js');
 
 describe('RouteCollection', () => {
 

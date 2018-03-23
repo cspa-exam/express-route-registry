@@ -1,8 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const RouteBuilder = require('../../lib/Routing/RouteBuilder');
-const RouteRegistry = require('../../lib/Routing/RouteRegistry');
+const { RouteBuilder, RouteRegistry } = require('../../index.js');
 
 const { ServiceContainer } = require('service-container');
 

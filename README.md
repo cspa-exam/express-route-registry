@@ -53,6 +53,10 @@ PHP had its problems but SensioLabs's Symfony Framework was rock solid.
 ## The RouteRegistry
 The RouteRegistry is a single point where all routing configurations are stored.
 
+```javascript
+const { RouteRegistry } = require('express-route-registry');
+```
+
 ## The RouteBuilder
 While there are a few ways of registering routes, the recommended method is to use the RouteBuilder. 
 This is a method on the RouteRegistry:
