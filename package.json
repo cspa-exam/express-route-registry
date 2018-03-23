@@ -4,8 +4,8 @@
   "description": "Alternative way of registering ExpressJS routes and controllers",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test --recursive",
-    "tests": "mocha test --recursive"
+    "test": "mocha test --recursive --require test/init.js",
+    "tests": "mocha test --recursive --require test/init.js"
   },
   "repository": {
     "type": "git",
@@ -16,13 +16,13 @@
   "bugs": {},
   "homepage": "https://github.com/Ryxias/express-route-registry#readme",
   "dependencies": {
-    "path-to-regexp": "^2.1.0",
-    "service-container": "Ryxias/service-container#master"
+    "path-to-regexp": "^2.1.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^3.5.0",
     "mocha-parallel-tests": "^1.2.10",
+    "service-container": "Ryxias/service-container#master",
     "sinon": "^4.4.2"
   }
 }

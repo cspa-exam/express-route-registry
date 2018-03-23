@@ -30,7 +30,9 @@ understanding and ease of flexibility.
 
 
 ### It's really hard to figure out where a route goes
-ExpressJS doesn't really have a way for you to determine where a route goes... (wtf why?)
+ExpressJS doesn't really have a way for you to determine where a route goes. In vanilla Express, code
+adopts a chain-of-responsibility pattern. This is great for adding new routing code without having to 
+worry about existing code--it'll "just work"!
 
 
 ### Name and Generate Routes
@@ -325,7 +327,7 @@ RouteRegistry.routeBuilder({
 ExpressJS [condones the overloading of route actions](http://expressjs.com/en/api.html#path-examples) as it
 does not enforce a distinction between **middleware** and **route actions**.
 
-This framework enforces the distinction to improve understandability of the code. It does so by **restricting
+This framework elects to enforce the distinction to improve understandability of the code. It does so by **restricting
 each route method to at most a single action**.
 
 When configuring using the `routeBuilder`, it will error when the canonical route of two configurations are 
@@ -385,13 +387,15 @@ Worried about javascript `this` bindings? No problem; the routeBuilder automatic
 action to the given controller instance! Nice!
 
 
-## Using Service Ids
-Are you using the `DependencyInjection` component? Even better! You can register an entire dependency-injected
+## Using Controllers with Service Ids
+Are you using my `service-container` module? Even better! You can register an entire dependency-injected
 controller simply by using its service id:
 
 ```javascript
 service_container.autowire('controller_service_id', HelloController);
 RouteRegistry.setContainer(service_container);
+ 
+// ...
  
 RouteRegistry.routeBuilder({
   '/hello-world': {
@@ -436,7 +440,7 @@ RouteRegistry.routeBuilder({
     } 
   }
 });
-
+ 
 RouteRegistry.generate('foo_route', { foo_id: 4 }); // returns /foo/4
 RouteRegistry.generate('foobar_route', { foo_id: 7, bar_id: 99 }); // returns /foo/7/bar/99
 RouteRegistry.generate('foobar_route', { }); // Errors: "Missing argument"
@@ -450,9 +454,14 @@ this `Routing` component to make this super easy.
 
 This is what a your controllers would look like:
 ```javascript
+
+const { Controller } = require('express-route-registry');
+
 class MyController extends Controller {
   my_action(req, res, next) {
-    this.generateUrl('some_other_route', { foo: 1, bar: 2 }); 
+    this.generateUrl('some_other_route', { foo: 1, bar: 2 });
+    
+    this.get('some_service_id').doThings();
     // etc...
   }
 }
