@@ -17,7 +17,7 @@
   "homepage": "https://github.com/Ryxias/express-route-registry#readme",
   "dependencies": {
     "path-to-regexp": "^2.1.0",
-    "service-container": "Ryxias/service-container#v1.0.0"
+    "service-container": "Ryxias/service-container#master"
   },
   "devDependencies": {
     "chai": "^4.1.2",
