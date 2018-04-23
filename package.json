@@ -4,8 +4,8 @@
   "description": "Alternative way of registering ExpressJS routes and controllers",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test --recursive --require test/init.js",
-    "tests": "mocha test --recursive --require test/init.js"
+    "test": "./node_modules/.bin/mocha-parallel-tests test --recursive --require test/init.js",
+    "tests": "npm run test"
   },
   "repository": {
     "type": "git",
