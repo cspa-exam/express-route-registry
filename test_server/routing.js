@@ -127,6 +127,24 @@ module.exports = service_container => {
   });
 
   registry.routeBuilder({
+    traits: {
+      website: {
+        middleware: (req, res, next) => { req.web_context = 'home'; next(); },
+      },
+    },
+    '/test7': {
+      is: [ 'website' ],
+      get: { name: 'test7', action: (req, res, next) => {
+        res.send({
+          message: `This is a demonstration of traits. You can register middleware onto traits and have them quickly inherited by many routes.`,
+          expectation: `The req.web_context should look like: "${req.web_context}".`,
+          pass: true,
+        })
+      }},
+    }
+  });
+
+  registry.routeBuilder({
     '/routes': {
       get: [ 'debug.controller', 'get_all_routes_action' ],
     },
