@@ -477,5 +477,56 @@ describe('RouteRegistry', () => {
         }).to.throw('Invalid configuration.');
       });
     });
+
+    describe('for error handlers', () => {
+      let registry = null;
+      beforeEach(() => {
+        registry = new RouteRegistry();
+      });
+
+      it('registers properly when error handler is a function', () => {
+        expect(() => {
+          registry.routeBuilder({
+            '/foo': {
+              error: (error, req, res, next) => {},
+              get: (req, res, next) => {},
+            },
+          });
+        }).to.not.throw();
+      });
+
+      it('registers properly when error handler is an array of functions', () => {
+        expect(() => {
+          registry.routeBuilder({
+            '/foo': {
+              error: [ (error, req, res, next) => {}, (error, req, res, next) => {} ],
+              get: (req, res, next) => {},
+            },
+          });
+        }).to.not.throw();
+      });
+
+      it('blows up when error handler is not a function', () => {
+        expect(() => {
+          registry.routeBuilder({
+            '/foo': {
+              error: 'a',
+              get: (req, res, next) => {},
+            },
+          });
+        }).to.throw('Error Handler at index 0 is invalid.');
+      });
+
+      it('blows up when error handler is a function that accepts the wrong number of arguments', () => {
+        expect(() => {
+          registry.routeBuilder({
+            '/foo': {
+              error: (req, res, next) => {}, // wrong, needs 4
+              get: (req, res, next) => {},
+            },
+          });
+        }).to.throw('Error Handler at index 0 accepts the wrong number of arguments');
+      });
+    });
   });
 });
