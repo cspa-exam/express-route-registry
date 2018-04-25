@@ -1,6 +1,6 @@
 'use strict';
 
-const Controller = require('../../lib/DependencyInjection/Controller');
+const Controller = require('../index.js').Controller;
 
 class HelloWorldController extends Controller {
 

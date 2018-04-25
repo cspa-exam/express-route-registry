@@ -389,7 +389,16 @@ action to the given controller instance! Nice!
 
 ## Using Controllers with Service Ids
 Are you using my `service-container` module? Even better! You can register an entire dependency-injected
-controller simply by using its service id:
+controller simply by using its service id.
+
+First, you must add the `service-container` as a plugin for this package:
+
+```javascript
+require('express-route-registry').useContainer(require('service-container'));
+```
+
+
+Then you can simply do this:
 
 ```javascript
 service_container.autowire('controller_service_id', HelloController);
