@@ -528,5 +528,27 @@ describe('RouteRegistry', () => {
         }).to.throw('Error Handler at index 0 accepts the wrong number of arguments');
       });
     });
+
+    describe('for traits', () => {
+      let registry = null;
+      beforeEach(() => {
+        registry = new RouteRegistry();
+      });
+
+      it('can register traits without throwing errors', () => {
+        expect(() => {
+          registry.routeBuilder({
+            traits: {
+              foo: { middleware: (req, res, next) => next }
+            },
+            '/foo': {
+              is: [ 'foo' ],
+              error: (error, req, res, next) => {},
+              get: (req, res, next) => {},
+            },
+          });
+        }).to.not.throw();
+      });
+    });
   });
 });

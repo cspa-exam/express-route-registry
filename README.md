@@ -109,8 +109,26 @@ Is the same as...
 expressApp.get('/route', myMiddleware, (req, res, next) => { /* ... */ });
 ```
 
-Hm, but this seems to be more code than before? Isn't this harder to maintain? Well, read on... 
+## Error Handlers 
+Adding error handlers
 
+```javascript
+RouteRegistry.routeBuilder({
+  '/route': {
+    get: {
+      action: (req, res, next) => { /* ... */ },
+      error: myErrorHandler,
+    },
+  }
+});
+```
+
+Is the same as...
+
+```javascript
+expressApp.get('/route', (req, res, next) => { /* ... */ });
+expressApp.use(myErrorHandler);
+```
 
 ## Parameter Converters
 Parameter converters are where things get interesting. The default ExpressJS `.param()` function is useful 
@@ -171,7 +189,7 @@ improves even more as we are introduced to nesting routes...
 Commonly, clusters of routes with similar requirements will be gathered under similar resources. 
 Consider the following example:
 
-```javascript
+```
 GET     /api/index
 GET     /api/users
 GET     /api/users/:id
@@ -234,14 +252,16 @@ RouteRegistry.routeBuilder({
         
         get: [ '...' ],
       }
-    }
+    },
+    
+    error: defaultApiErrorHandler,
   },
 });
 ```
 
 
 ## Understanding Middleware and Parameter Converter Inheritance
-In our previous example, notice the specific placement of the `middleware` and `param` nodes.
+In our previous example, notice the specific placement of the `middleware`, `param`, `error`.
 
 By default, all routes (that is, the targets of `get`, `post`, `patch`, `put`, or `delete` notes), inherit
 the following attributes from their direct parent configurations:
@@ -249,13 +269,17 @@ the following attributes from their direct parent configurations:
 * Route Prefixes
 * Middleware
 * Parameter Converters
+* Traits
+* Error handlers
 
-
-The inheritance **ordering** is notably important. Parent values are accepted first. In other words, middleware
-on parents is fired before middleware on children. 
 
 This pattern is highly useful for creating global middleware that is shared across many routes (even an entire
 application!).
+
+The inheritance **ordering** is notably important. Middleware that is registered on the parent is fired first, 
+in order, then middleware for children routes is fired afterwards, and so on. The **opposite** is true for error
+handlers; error handlers on specific routes is fired first, with more generic error handlers on parent configurations
+being fired last.
 
 
 ## Opting to Not Inherit Middleware
@@ -321,6 +345,104 @@ RouteRegistry.routeBuilder({
   },
 });
 ```
+
+This can get quite annoying to manage across many routes, but let's see how **traits** can help with this...
+
+## Simplifying Configuration with Traits
+In previous examples. all middleware is explicitly declared for routes or collections of routes.
+
+```javascript
+RouteRegistry.routeBuilder({
+  middleware: [ '...' ],
+  '/foo': {
+    // ...
+  } 
+})
+```
+
+While the default inheritance nature of middleware can reduce duplicate code, it is still hard to configure many
+batches of routes with different route prefixes but have similar middleware. Consider:
+
+```javascript
+RouteRegistry.routeBuilder({
+  '/api': {
+    '/users': {
+      '/:id': {
+        '/orders': {
+          '/:order_id': {
+            middleware: [ /* what if there is a lot of middleware here? */ ],
+            get: [ '...' ], 
+          },  
+        },
+      },
+    },
+    
+    '/orders': {
+      '/:id': {
+        middleware: [ /* do we have to replicate it here? */ ],
+        get: [ '...' ],
+      },
+    },
+  },
+});
+```
+
+Enter: **traits**
+
+Traits are a way of declaratively modelling your API through multiple inheritance. At the top-level of the 
+configuration, you may specify a single `trait` node:
+
+```javascript
+RouteRegistry.routeBuilder({
+  traits: {
+    trait1: {
+      middleware: [ '...' ],
+    },
+    trait2: { /* ... */ },
+    trait3: { /* ... */ }, 
+  },
+  
+  // ...
+});
+```
+
+Traits are registered by the key name. Once registered, you may use the `is` configuration node to allow a route
+or route collection to inherit all attributes associated with that trait.
+
+```javascript
+RouteRegistry.routeBuilder({
+  traits: {
+    user_api: {
+      middleware: [ userAuthenticationMiddleware, userCheckPermissionsMiddleware ],
+    },
+    order_api: {
+      middleware: [ checkOrderIdExistsMiddleware, warmOrderProductCacheMiddleware ],
+    },
+  },
+
+  '/api': {
+    '/users': {
+      '/:id': {
+        '/orders': {
+          '/:order_id': {
+            is: [ 'user_api', 'order_api' ],
+            get: [ '...' ], 
+          },  
+        },
+      },
+    },
+    
+    '/orders': {
+      '/:id': {
+        is: [ 'order_api' ],
+        get: [ '...' ],
+      },
+    },
+  },
+});
+```
+
+The use of traits allows you to quickly configure many routes based on what they are.
 
 
 ## Avoiding Route Collisions
@@ -424,6 +546,51 @@ RouteRegistry.routeBuilder({
     }
   }
 });
+```
+
+### The Abstract Controller and Compiler pass
+For power users of `service-container`, this module provides additional features when connected with the 
+ServiceContainer.
+
+A default Controller implementation is provided that can be extended.
+
+```javascript
+class HelloController extends require('express-route-registry').Controller {
+  
+  index_action(req, res, next) {
+    
+    // here you can use this.get('<service_id>') to retrieve services out of your service-container!
+    return this.get('DatabaseConnection').User
+      .findById('...') // ...
+  }
+}
+```
+
+To get this to work, you need to add 2 things:
+
+First you need to **tag** this service when you register it. Note the **.addTag()** call.
+
+```javascript
+service_container.autowire('app.controller.hello', require('./HelloController')).addTag('controller');
+```
+
+The tag marks the service as a special type of service. This is then read by the `ControllerCompilerPass`:
+
+```javascript
+// After registering controllers..
+
+const { ControllerCompilerPass } = require('express-route-registry');
+service_container.addCompilerPass(new ControllerCompilerPass());
+```
+
+When the Compiler Pass is run, it retrieves all services tagged as "**controller**" and then adds the ServiceContainer
+properly, so that `this.get()` will behave as expected. 
+
+
+**NOTE** In earlier version of `service-container` you will need to explicitly set the `service_container` service:
+
+```javascript
+service_container.set('service_container', service_container);
 ```
 
 
