@@ -7,8 +7,6 @@ const RouteCollectionBuilder = require('../../lib/Routing/RouteCollectionBuilder
 const RouteCollection = require('../../lib/Routing/RouteCollection');
 const Route = require('../../lib/Routing/Route');
 
-const { ServiceContainer } = require('service-container');
-
 
 describe('RouteCollectionBuilder', () => {
 
@@ -25,6 +23,84 @@ describe('RouteCollectionBuilder', () => {
       expect(routes).to.be.an.instanceof(RouteCollection);
       expect(routes.get('get')).to.be.an.instanceof(Route);
       expect(routes.get('get').getPattern()).to.equal('/foo');
+    });
+
+    describe('with multiple individual route collections under the same key', () => {
+      it('can build simple cases', () => {
+        const configuration = {
+          '/foo': [
+            {
+              get: { name: 'fooget', action: (req, res, next) => {} }
+            },
+            {
+              post: { name: 'foopost', action: (req, res, next) => {} }
+            }
+          ],
+        };
+        const builder = new RouteCollectionBuilder(configuration);
+        const routes = builder.build();
+
+        expect(routes).to.be.an.instanceof(RouteCollection);
+        expect(routes.get('fooget')).to.be.an.instanceof(Route);
+        expect(routes.get('foopost')).to.be.an.instanceof(Route);
+      });
+
+      it('correctly inherits middleware', () => {
+        function thatmiddleware(req, res, next) {}
+        const configuration = {
+          middleware: thatmiddleware,
+          '/foo': [
+            {
+              get: { name: 'fooget', action: (req, res, next) => {} }
+            },
+            {
+              post: { name: 'foopost', action: (req, res, next) => {} }
+            }
+          ],
+        };
+        const builder = new RouteCollectionBuilder(configuration);
+        const routes = builder.build();
+
+        expect(routes.get('fooget').getMiddleware()).to.include(thatmiddleware);
+        expect(routes.get('foopost').getMiddleware()).to.include(thatmiddleware);
+      });
+
+      it('does not cross-inherit middleware', () => {
+        function thatmiddleware(req, res, next) {}
+        const configuration = {
+          '/foo': [
+            {
+              middleware: thatmiddleware,
+              get: { name: 'fooget', action: (req, res, next) => {} }
+            },
+            {
+              post: { name: 'foopost', action: (req, res, next) => {} }
+            }
+          ],
+        };
+        const builder = new RouteCollectionBuilder(configuration);
+        const routes = builder.build();
+
+        expect(routes.get('fooget').getMiddleware()).to.include(thatmiddleware);
+        expect(routes.get('foopost').getMiddleware()).to.not.include(thatmiddleware);
+      });
+
+      // This check is currently not implemented
+      it.skip('errors when a route collides on a method', () => {
+        const configuration = {
+          '/foo': [
+            {
+              get: { name: 'fooget', action: (req, res, next) => {} }
+            },
+            {
+              get: { name: 'fooget', action: (req, res, next) => {} }
+            }
+          ],
+        };
+        const builder = new RouteCollectionBuilder(configuration);
+        expect(() => builder.build()).to.throw('aefliawejf');
+        //const routes = builder.build();
+      });
     });
   });
 
