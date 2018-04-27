@@ -162,7 +162,8 @@ describe('RouteCollectionBuilder', () => {
       const configuration = {
         traits: {
           secure: {
-            middleware: (req, res, next) => {}
+            middleware: (req, res, next) => {},
+            error: (err, req, res, next) => {},
           }
         },
         '/foo': {
@@ -174,6 +175,7 @@ describe('RouteCollectionBuilder', () => {
       const routes = builder.build(configuration);
 
       expect(routes.get('foo').getMiddleware()).to.be.an('array').that.has.length(1);
+      expect(routes.get('foo').getErrorHandlers()).to.be.an('array').that.has.length(1);
     });
 
     it('inherits traits after explicitly defined middleware', () => {
