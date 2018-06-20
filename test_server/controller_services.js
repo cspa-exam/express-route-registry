@@ -21,14 +21,14 @@ module.exports = service_container => {
   service_container.set('middleware.sample', function samplemiddleware(req, res, next) { next(); });
   service_container.set('middleware.heylisten', function heylisten(req, res, next) { req.heylisten = 'HEY, listen!'; next(); });
   service_container.set('error.sample', function sampleerrorhandler(err, req, res, next) { res.send('blah'); });
-  service_container.set('error.test9', function sampleerrorhandler(err, req, res, next) {
+  service_container.set('error.test9', function test9error(err, req, res, next) {
     res.send({
       message: `This is a demonstration of error handlers working.`,
       expectation: err.message,
       pass: true,
     });
   });
-  service_container.set('param.sample', function sampleparameterconverter(id, req, res, next) { next(); });
+  service_container.set('param.sample', function sampleparameterconverter(req, res, next, id) { next(); });
 
   service_container.registerFactory('express.server', service_container => {
     const express = require('express');
