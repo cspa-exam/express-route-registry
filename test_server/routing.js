@@ -145,6 +145,23 @@ module.exports = service_container => {
   });
 
   registry.routeBuilder({
+    traits: {
+      website: {
+        middleware: '@middleware.heylisten',
+        error: '@error.test9',
+      },
+    },
+    '/test8': {
+      is: [ 'website' ],
+      get: [ '@TestController', 'test8_action', 'datnametho' ],
+    },
+    '/test9': {
+      is: [ 'website' ],
+      get: [ '@TestController', 'test9_action', 'eeeeeeee' ],
+    }
+  });
+
+  registry.routeBuilder({
     '/routes': {
       get: [ 'debug.controller', 'get_all_routes_action' ],
     },
