@@ -74,6 +74,7 @@ describe('JsonLoader', function() {
           get: {
             service_id: '@helloworld_controller',
             action: 'index_action',
+            name: 'aaaaaaaaaa',
           }
         }
       });
@@ -82,7 +83,11 @@ describe('JsonLoader', function() {
 
       const route = route_registry.getAll()[0];
 
-      console.log(route);
+      expect(route.getName()).to.equal('aaaaaaaaaa');
+      expect(route.getMethods()).to.deep.equal(['get']);
+      expect(route.getMiddleware()).to.be.an('Array').that.has.length(1);
+      expect(route.getParameterConverters()).to.be.an('Array').that.has.length(1);
+      expect(route.getErrorHandlers()).to.be.an('Array').that.has.length(1);
     });
   });
 });
