@@ -1,10 +1,29 @@
 'use strict';
 
-const { RouteRegistry } = require('../index');
+const { RouteRegistry, JsonLoader } = require('../index');
 
 module.exports = service_container => {
   const registry = new RouteRegistry();
-  registry.setContainer(service_container);
+  const json_loader = new JsonLoader(registry, service_container);
+
+  registry.setContainer(service_container); // Necessary until you stop using routeBuilder()
+
+  // This validates that priority works
+  json_loader.load({
+    '/:wildcard': {
+      priority: -9999,
+      get: {
+        name: 'misc',
+        action: (req, res, next) => {
+          res.send({
+            message: `This is a wildcard handler. If you're here but you're expecting a test, you failed!`,
+            pass: false,
+          });
+        }
+      }
+    }
+  });
+
 
   // Routes, organized by various tests
   registry.routeBuilder({

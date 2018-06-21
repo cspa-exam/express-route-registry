@@ -24,6 +24,36 @@ describe('JsonLoader', function() {
 
       expect(route_registry.getAll()).to.be.an('Array').that.has.length(2);
     });
+
+    it('can load routes with priorities', function() {
+      const route_registry = new RouteRegistry();
+      const loader = new JsonLoader(route_registry);
+
+      loader.load({
+        '/:wildcard1': {
+          get: function zzzz(req, res, next) {
+            res.render('no!');
+          },
+        },
+        '/:wildcard2': {
+          priority: 99,
+          get: function aaaa(req, res, next) {
+            res.render('yes!');
+          },
+        },
+      });
+
+      expect(route_registry.getAll()).to.be.an('Array').that.has.length(2);
+
+      expect(route_registry.getAll()[0].getPriority()).to.equal(0);
+      expect(route_registry.getAll()[1].getPriority()).to.equal(99);
+
+
+      expect(route_registry.matchAll('/aaa')).to.be.an('Array').that.has.length(2);
+
+      // Normally, wildcard1 would get fired first, due to the order it is registered. But priority 99 makes wildcard2 go first!
+      expect(route_registry.match('/aaa').getPattern()).to.equal('/:wildcard2');
+    });
   });
 
   describe('with the service container', function() {
